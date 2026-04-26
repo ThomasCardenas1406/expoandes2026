@@ -625,3 +625,35 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.day-column {
+  background: rgba(255,255,255,0.8);
+  border-radius: 12px;
+  padding: 8px;
+  min-height: 200px;
+}
+
+.day-header {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.day-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.time-block {
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: black;
+}

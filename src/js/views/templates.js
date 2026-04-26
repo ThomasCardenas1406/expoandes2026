@@ -408,7 +408,48 @@ export function renderScheduleScreen(state) {
             : `<div class="empty-state">Todavía no has agregado bloques de horario.</div>`}
         </div>
       </article>
+       <article class="list-card">
+      <div class="screen-header">
+        <div>
+          <h2 class="section-title">Vista semanal</h2>
+          <p>Visualización tipo calendario de tu horario.</p>
+        </div>
+      </div>
+
+      ${renderWeeklyScheduleGrid(state)}
+    </article>
+
     </section>
+
+  `;
+}
+
+function renderWeeklyScheduleGrid(state) {
+  const days = DAY_OPTIONS;
+
+  return `
+    <div class="weekly-grid">
+      ${days.map(day => `
+        <div class="day-column">
+          <div class="day-header">${day.label}</div>
+          <div class="day-body">
+            ${state.schedules
+              .filter(s => s.dayOfWeek === day.value)
+              .map(s => {
+                const subject = state.subjects.find(sub => sub.id === s.subjectId);
+
+                return `
+                  <div class="time-block" style="background:${subject?.color || '#FFCC00'}">
+                    <strong>${subject?.name || "Materia"}</strong>
+                    <span>${s.startTime} - ${s.endTime}</span>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        </div>
+      `).join("")}
+    </div>
   `;
 }
 
