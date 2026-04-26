@@ -39,6 +39,7 @@ function getTypeLabel(type) {
 
 export function renderSidebar({ activeRoute, profile, memberships }) {
   return `
+    <button class="close-sidebar-btn" data-action="toggle-sidebar">✕</button>
     <div class="brand-lockup">
       <span>Expoandes MVP</span>
       <h1>Time2Study Uniandes</h1>

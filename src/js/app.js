@@ -69,6 +69,7 @@ const appRoot = document.getElementById("app");
 const sidebarRoot = document.getElementById("sidebar");
 const topbarRoot = document.getElementById("topbar");
 const notificationRoot = document.getElementById("notification-root");
+const overlay = document.getElementById("overlay");
 
 function getRouteParts() {
   const hash = window.location.hash.replace(/^#\//, "");
@@ -387,7 +388,8 @@ async function handleActionClick(event) {
   try {
     switch (action) {
       case "toggle-sidebar":
-        sidebarRoot.classList.toggle("sidebar-open");
+        const isOpen = sidebarRoot.classList.toggle("sidebar-open");
+        overlay.classList.toggle("hidden", !isOpen);
         return;
       case "logout":
         await logoutCurrentUser();
@@ -441,6 +443,10 @@ function attachGlobalListeners() {
   document.addEventListener("submit", handleFormSubmit);
   document.addEventListener("click", handleActionClick);
   window.addEventListener("hashchange", renderApp);
+  overlay.addEventListener("click", () => {
+  sidebarRoot.classList.remove("sidebar-open");
+  overlay.classList.add("hidden");
+});
 }
 
 function setupAuthObserver() {
