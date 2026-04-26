@@ -386,6 +386,9 @@ async function handleActionClick(event) {
 
   try {
     switch (action) {
+      case "toggle-sidebar":
+        sidebarRoot.classList.toggle("sidebar-open");
+        return;
       case "logout":
         await logoutCurrentUser();
         navigateTo("login");

@@ -73,12 +73,15 @@ export function renderSidebar({ activeRoute, profile, memberships }) {
 
 export function renderTopbar({ profile, usingDemo }) {
   return `
+    <button class="mobile-menu-btn" data-action="toggle-sidebar">☰</button>
+
     <div class="topbar-card">
       <div>
         <strong>${profile?.name ?? "Invitado"}</strong>
         <div class="meta">${profile?.email ?? "Sin sesión"}</div>
       </div>
     </div>
+
     <div class="topbar-card">
       <span class="status-pill ${usingDemo ? "demo" : "live"}">
         ${usingDemo ? "Modo demo local" : "Firebase conectado"}
