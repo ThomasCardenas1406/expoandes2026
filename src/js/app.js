@@ -71,6 +71,51 @@ const topbarRoot = document.getElementById("topbar");
 const notificationRoot = document.getElementById("notification-root");
 const overlay = document.getElementById("overlay");
 
+function generateICS(state) {
+  const events = state.schedules.map((s) => {
+    const subject = state.subjects.find(sub => sub.id === s.subjectId);
+
+    const dayMap = {
+      monday: "MO",
+      tuesday: "TU",
+      wednesday: "WE",
+      thursday: "TH",
+      friday: "FR",
+      saturday: "SA"
+    };
+
+    const start = s.startTime.replace(":", "");
+    const end = s.endTime.replace(":", "");
+
+    return `
+  BEGIN:VEVENT
+  SUMMARY:${subject?.name || "Clase"}
+  DTSTART:20260501T${start}00
+  DTEND:20260501T${end}00
+  RRULE:FREQ=WEEKLY;BYDAY=${dayMap[s.dayOfWeek]}
+  LOCATION:${s.location || "Uniandes"}
+  END:VEVENT`;
+    }).join("");
+
+    return `BEGIN:VCALENDAR
+  VERSION:2.0
+  ${events}
+  END:VCALENDAR`;
+}
+
+function downloadICS(state) {
+  const content = generateICS(state);
+  const blob = new Blob([content], { type: "text/calendar" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "horario.ics";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
 function getRouteParts() {
   const hash = window.location.hash.replace(/^#\//, "");
   return hash ? hash.split("/") : ["login"];
@@ -268,7 +313,7 @@ async function handleFormSubmit(event) {
           userId: uid,
           name: payload.name,
           code: payload.code,
-          professor: payload.professor,
+          section: payload.section,
           color: payload.color,
         });
         showToast("Materia guardada.");
@@ -391,6 +436,10 @@ async function handleActionClick(event) {
         const isOpen = sidebarRoot.classList.toggle("sidebar-open");
         overlay.classList.toggle("hidden", !isOpen);
         return;
+      case "export-ics":
+        downloadICS(state);
+        showToast("Calendario exportado.");
+        return;
       case "logout":
         await logoutCurrentUser();
         navigateTo("login");
@@ -498,3 +547,10 @@ function bootstrap() {
 }
 
 bootstrap();
+
+document.addEventListener("input", (e) => {
+  if (e.target.id === "subject-color") {
+    const preview = document.getElementById("color-preview");
+    if (preview) preview.style.background = e.target.value;
+  }
+});

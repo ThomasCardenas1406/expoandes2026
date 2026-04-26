@@ -316,7 +316,8 @@ export function renderScheduleScreen(state) {
           <p>Gestiona materias y horarios académicos por bloque.</p>
         </div>
         <div class="screen-actions">
-          <a class="btn btn-primary" href="#/schedule/new">Añadir Horario</a>
+          <a class="btn btn-primary" href="#/schedule/new">Añadir Materia al Horario</a>
+          <button class="btn btn-secondary" data-action="export-ics">Exportar a calendario</button>
         </div>
       </div>
 
@@ -339,12 +340,15 @@ export function renderScheduleScreen(state) {
                 <input id="subject-code" name="code" type="text" required />
               </div>
               <div class="field">
-                <label for="subject-professor">Profesor</label>
-                <input id="subject-professor" name="professor" type="text" />
+                <label for="subject-section">Sección</label>
+                <input id="subject-section" name="section" type="text" placeholder="Ej: 1, 2, A" />
               </div>
               <div class="field">
                 <label for="subject-color">Color</label>
-                <input id="subject-color" name="color" type="color" value="#0d8a7a" />
+                <div class="color-picker">
+                  <input id="subject-color" name="color" type="color" />
+                  <span id="color-preview"></span>
+                </div>
               </div>
             </div>
             <button class="btn btn-primary" type="submit">Guardar materia</button>
@@ -369,7 +373,7 @@ export function renderScheduleScreen(state) {
                             <span class="subject-dot" style="background:${subject.color || "#0d8a7a"}"></span>
                             <div>
                               <strong>${subject.name}</strong>
-                              <div class="meta">${subject.code} · ${subject.professor || "Profesor pendiente"}</div>
+                              <div class="meta">${subject?.code} · sección ${subject.section || "N/A"}</div>
                             </div>
                           </div>
                           <button class="btn btn-secondary" data-action="delete-subject" data-id="${subject.id}">Eliminar</button>
