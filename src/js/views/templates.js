@@ -95,7 +95,7 @@ export function renderAuthScreen(screen) {
       <article class="auth-card">
         <div class="screen-header">
           <div>
-            <h2>${isLogin ? "LoginScreen" : "RegisterScreen"}</h2>
+            <h2>${isLogin ? "Inicie Sesión" : "Registrarse"}</h2>
             <p>${isLogin ? "Ingresa para continuar con tu agenda académica." : "Crea un usuario y empieza a cargar materias, horarios y grupos."}</p>
           </div>
         </div>
