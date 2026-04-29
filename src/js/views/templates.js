@@ -635,14 +635,14 @@ export function renderGroupDetailScreen(groupDetail, isMember) {
     <section class="screen">
       <div class="screen-header">
         <div>
-          <h2>Detalles del Grupo/h2>
+          <h2>Detalles del Grupo</h2>
           <p>${groupDetail.group.name} · ${groupDetail.group.subjectName}</p>
         </div>
         <div class="screen-actions">
           <a class="btn btn-secondary" href="#/groups">Volver</a>
           ${
             isMember
-              ? `<a class="btn btn-primary" href="#/matching/${groupDetail.group.id}">MatchingScheduleScreen</a>`
+              ? `<a class="btn btn-primary" href="#/matching/${groupDetail.group.id}">Horarios compatibles del grupo</a>`
               : ""
           }
         </div>
