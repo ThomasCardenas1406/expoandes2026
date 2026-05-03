@@ -764,10 +764,7 @@ export function renderGroupDetailScreen(groupDetail, isMember) {
                       <label for="session-end">Hora fin</label>
                       <input id="session-end" name="endTime" type="time" required />
                     </div>
-                    <div class="field">
-                      <label for="session-location">Lugar</label>
-                      <input id="session-location" name="location" type="text" />
-                    </div>
+
                     <div class="field">
                       <label for="session-modality">Modalidad</label>
                       <select id="session-modality" name="modality" data-session-modality>
