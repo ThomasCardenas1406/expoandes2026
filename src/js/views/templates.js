@@ -241,11 +241,15 @@ export function renderDashboardScreen(state) {
                         <div class="item-header">
                           <div>
                             <strong>${session.title}</strong>
-                            <div class="meta">${formatDate(session.date)} · ${session.startTime} - ${session.endTime}</div>
-                          </div>
-                          <span class="badge">${session.modality ?? "Sin modalidad"}</span>
-                        </div>
-                        <div class="meta">${session.location ?? "Ubicación por definir"}</div>
+                            <div class="meta">
+                              ${
+                                session.modality === "virtual"
+                                  ? session.meetingLink || "Link pendiente"
+                                  : session.modality === "híbrida"
+                                    ? `${session.location || "Lugar pendiente"} · ${session.meetingLink || "Link pendiente"}`
+                                    : session.location || "Lugar pendiente"
+                              } · ${session.modality || "Sin modalidad"}
+                            </div>
                       </article>
                     `
                   )
@@ -766,11 +770,21 @@ export function renderGroupDetailScreen(groupDetail, isMember) {
                     </div>
                     <div class="field">
                       <label for="session-modality">Modalidad</label>
-                      <select id="session-modality" name="modality">
+                      <select id="session-modality" name="modality" data-session-modality>
                         <option value="presencial">Presencial</option>
                         <option value="virtual">Virtual</option>
                         <option value="híbrida">Híbrida</option>
                       </select>
+                    </div>
+
+                    <div class="field session-place-field">
+                      <label for="session-location">Lugar presencial</label>
+                      <input id="session-location" name="location" type="text" placeholder="Ej: ML-305, Biblioteca, Sala de estudio" />
+                    </div>
+
+                    <div class="field session-link-field hidden">
+                      <label for="session-link">Link virtual</label>
+                      <input id="session-link" name="meetingLink" type="url" placeholder="https://meet.google.com/..." />
                     </div>
                   </div>
                   <button class="btn btn-primary" type="submit">Crear sesión</button>
@@ -987,7 +1001,7 @@ export function renderGradesScreen(state) {
                       </select>
                     </div>
                     <div class="field">
-                      <label for="grade-item">Ítem</label>
+                      <label for="grade-item">Ítem (Parcial, Taller, Proyecto, etc)</label>
                       <input id="grade-item" name="itemName" type="text" required />
                     </div>
                     <div class="field">

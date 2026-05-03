@@ -367,11 +367,13 @@ async function handleFormSubmit(event) {
           }
 
           showToast("Grupo creado con Discord 🚀");
+          
 
         } catch (error) {
           console.error(error);
           showToast("Grupo creado, pero Discord falló ⚠️");
         }
+
 
         navigateTo("groups");
         break;
@@ -385,7 +387,8 @@ async function handleFormSubmit(event) {
           date: payload.date,
           startTime: payload.startTime,
           endTime: payload.endTime,
-          location: payload.location,
+          location: payload.location || "",
+          meetingLink: payload.meetingLink || "",
           modality: payload.modality,
           participants: [],
         });
@@ -520,6 +523,7 @@ function attachGlobalListeners() {
   document.addEventListener("submit", handleFormSubmit);
   document.addEventListener("click", handleActionClick);
   window.addEventListener("hashchange", renderApp);
+  document.addEventListener("change", handleSessionModalityChange);
   overlay.addEventListener("click", () => {
   sidebarRoot.classList.remove("sidebar-open");
   overlay.classList.add("hidden");
@@ -582,3 +586,16 @@ document.addEventListener("input", (e) => {
     if (preview) preview.style.background = e.target.value;
   }
 });
+
+function handleSessionModalityChange(event) {
+  if (!event.target.matches("[data-session-modality]")) return;
+
+  const form = event.target.closest("form");
+  const placeField = form.querySelector(".session-place-field");
+  const linkField = form.querySelector(".session-link-field");
+
+  const modality = event.target.value;
+
+  placeField.classList.toggle("hidden", modality === "virtual");
+  linkField.classList.toggle("hidden", modality === "presencial");
+}
