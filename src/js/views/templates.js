@@ -580,7 +580,7 @@ export function renderGroupsScreen(state) {
   `;
 }
 
-export function renderCreateGroupScreen() {
+export function renderCreateGroupScreen(state) {
   return `
     <section class="screen">
       <div class="screen-header">
@@ -600,7 +600,17 @@ export function renderCreateGroupScreen() {
             </div>
             <div class="field">
               <label for="group-subject">Materia</label>
-              <input id="group-subject" name="subjectName" type="text" required />
+              <select id="group-subject" name="subjectId" required>
+                <option value="">Selecciona una materia</option>
+                ${state.subjects
+                  .map(
+                    (subject) =>
+                      `<option value="${subject.id}">
+                        ${subject.name} · sección ${subject.section || ""}
+                      </option>`
+                  )
+                  .join("")}
+              </select>
             </div>
             <div class="field">
               <label for="group-university">Universidad</label>

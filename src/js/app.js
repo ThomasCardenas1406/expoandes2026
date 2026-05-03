@@ -225,7 +225,7 @@ async function renderProtectedScreen() {
         : renderScheduleScreen(state);
     case "groups":
       if (detailId === "new") {
-        return renderCreateGroupScreen();
+        return renderCreateGroupScreen(state);
       }
       if (detailId) {
         const detail = await getGroupDetail(detailId);
@@ -335,16 +335,44 @@ async function handleFormSubmit(event) {
         navigateTo("schedule");
         break;
       case "group":
+        const subject = state.subjects.find(s => s.id === payload.subjectId);
+
+        // 1. Crear grupo primero
         await createStudyGroup({
           name: payload.name,
-          subjectName: payload.subjectName,
+          subjectId: payload.subjectId,
+          subjectName: subject?.name || "Materia",
           description: payload.description,
           creatorId: uid,
           university: payload.university,
-          discordLink: payload.discordLink,
           createdAt: new Date().toISOString(),
         });
-        showToast("Grupo creado.");
+
+        // 2. Crear canales en Discord
+        try {
+          const discordResponse = await fetch("http://localhost:3000/create-discord-group", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              groupName: payload.name,
+            }),
+          });
+
+          const discordData = await discordResponse.json();
+
+          if (!discordData.ok) {
+            throw new Error("Discord falló");
+          }
+
+          showToast("Grupo creado con Discord 🚀");
+
+        } catch (error) {
+          console.error(error);
+          showToast("Grupo creado, pero Discord falló ⚠️");
+        }
+
         navigateTo("groups");
         break;
       case "study-session":
