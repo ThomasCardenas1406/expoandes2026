@@ -1,3 +1,4 @@
+console.log("APP.JS CARGADO");
 import {
   createCalendarEvent,
   createGrade,
@@ -439,7 +440,6 @@ async function handleFormSubmit(event) {
           university: payload.university,
           program: payload.program,
           semester: Number(payload.semester),
-          photoUrl: payload.photoUrl,
         });
         showToast("Perfil actualizado.");
         break;
@@ -570,7 +570,13 @@ function setupAuthObserver() {
 }
 
 function bootstrap() {
+
+  console.log("BOOTSTRAP INICIADO");
+
   const firebaseStatus = initializeFirebase();
+
+   console.log("Firebase status:", firebaseStatus);
+
   state.status.usingDemo = firebaseStatus.usingDemo;
   attachGlobalListeners();
   setupAuthObserver();

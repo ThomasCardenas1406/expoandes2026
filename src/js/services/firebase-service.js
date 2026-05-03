@@ -1,3 +1,5 @@
+console.log("FIREBASE SERVICE CARGADO");
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getAuth,
@@ -28,6 +30,13 @@ let firebaseReady = false;
 
 export function initializeFirebase() {
   const hasConfig = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
+
+  console.log("Firebase config detectada:", {
+  hasConfig,
+  apiKey: Boolean(firebaseConfig.apiKey),
+  projectId: firebaseConfig.projectId,
+  demoMode: appSettings.enableDemoMode,
+});
 
   if (!hasConfig) {
     return { ready: false, usingDemo: appSettings.enableDemoMode };
