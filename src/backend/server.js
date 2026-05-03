@@ -1,4 +1,13 @@
 import "dotenv/config";
+if (!process.env.DISCORD_TOKEN) {
+  throw new Error("❌ Falta DISCORD_TOKEN en .env");
+}
+
+if (!process.env.DISCORD_GUILD_ID) {
+  throw new Error("❌ Falta DISCORD_GUILD_ID en .env");
+}
+
+console.log("✅ Variables cargadas correctamente");
 import express from "express";
 import cors from "cors";
 import {
