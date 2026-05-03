@@ -1,5 +1,53 @@
 import { DAY_OPTIONS, formatDate, formatDateTime, getTodayKey, sortByDate } from "../utils/date-utils.js";
 
+export const PROGRAM_OPTIONS = [
+  "Administración",
+  "Antropología",
+  "Arquitectura",
+  "Arte",
+  "Biología",
+  "Ciencia Política",
+  "Contaduría Internacional",
+  "Derecho",
+  "Diseño",
+  "Economía",
+  "Estudios Globales",
+  "Filosofía",
+  "Física",
+  "Geociencias",
+  "Historia",
+  "Historia del Arte",
+  "Ingeniería Ambiental",
+  "Ingeniería Biomédica",
+  "Ingeniería Civil",
+  "Ingeniería de Alimentos",
+  "Ingeniería de Sistemas y Computación",
+  "Ingeniería Eléctrica",
+  "Ingeniería Electrónica",
+  "Ingeniería Industrial",
+  "Ingeniería Mecánica",
+  "Ingeniería Química",
+  "Lenguas y Cultura",
+  "Licenciatura en Artes",
+  "Licenciatura en Biología",
+  "Licenciatura en Educación Infantil",
+  "Licenciatura en Español y Filología",
+  "Licenciatura en Filosofía",
+  "Licenciatura en Física",
+  "Licenciatura en Historia",
+  "Licenciatura en Matemáticas",
+  "Licenciatura en Química",
+  "Literatura",
+  "Matemáticas",
+  "Medicina",
+  "Microbiología",
+  "Música",
+  "Narrativas Digitales",
+  "Ciencia de Datos",
+  "Psicología",
+  "Química"
+];
+
 function createNavLink(route, label, activeRoute) {
   return `
     <a class="nav-link ${activeRoute === route ? "active" : ""}" href="#/${route}">
@@ -45,7 +93,7 @@ export function renderSidebar({ activeRoute, profile, memberships }) {
       <h1>Time2Study Uniandes</h1>
       <small class="support-copy">${
         profile?.program
-          ? `${profile.program} · semestre ${profile.semester}`
+          ? `${profile.program} · Semestre ${profile.semester}`
           : "Organiza clases, grupos y notas en un solo lugar"
       }</small>
     </div>
@@ -132,7 +180,10 @@ export function renderAuthScreen(screen) {
                 </div>
                 <div class="field">
                   <label for="register-program">Carrera</label>
-                  <input id="register-program" name="program" type="text" placeholder="Ingeniería de Sistemas" required />
+                  <select id="register-program" name="program" required>
+                    <option value="">Selecciona tu carrera</option>
+                    ${PROGRAM_OPTIONS.map(p => `<option value="${p}">${p}</option>`).join("")}
+                  </select>
                 </div>
                 <div class="field">
                   <label for="register-semester">Semestre</label>
@@ -1191,15 +1242,16 @@ export function renderProfileScreen(state) {
               </div>
               <div class="field">
                 <label for="profile-program">Carrera</label>
-                <input id="profile-program" name="program" type="text" value="${state.profile?.program ?? ""}" />
+                <select id="profile-program" name="program">
+                  <option value="">Selecciona tu carrera</option>
+                  ${PROGRAM_OPTIONS.map(
+                    p => `<option value="${p}" ${state.profile?.program === p ? "selected" : ""}>${p}</option>`
+                  ).join("")}
+                </select>
               </div>
               <div class="field">
                 <label for="profile-semester">Semestre</label>
                 <input id="profile-semester" name="semester" type="number" min="1" max="12" value="${state.profile?.semester ?? 1}" />
-              </div>
-              <div class="field">
-                <label for="profile-photo">Foto URL</label>
-                <input id="profile-photo" name="photoUrl" type="url" value="${state.profile?.photoUrl ?? ""}" />
               </div>
             </div>
             <button class="btn btn-primary" type="submit">Guardar perfil</button>
@@ -1217,7 +1269,7 @@ export function renderProfileScreen(state) {
             <strong>${state.profile?.name ?? "Sin nombre"}</strong>
             <div class="meta">${state.profile?.email ?? "Sin correo"}</div>
             <div class="meta">${state.profile?.university ?? "Universidad no definida"}</div>
-            <div class="meta">${state.profile?.program ?? "Carrera no definida"} · semestre ${state.profile?.semester ?? "-"}</div>
+            <div class="meta">${state.profile?.program ?? "Carrera no definida"} · Semestre ${state.profile?.semester ?? "-"}</div>
           </div>
         </article>
       </div>

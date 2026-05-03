@@ -556,8 +556,8 @@ function setupAuthObserver() {
         name: user.displayName || user.name || "Estudiante Expoandes",
         email: user.email,
         university: "Universidad de los Andes",
-        program: "Por definir",
-        semester: 1,
+        program: payload.program || "Sin definir",
+        semester: payload.semester || 1,
         createdAt: new Date().toISOString(),
       });
       await refreshData();
