@@ -85,6 +85,74 @@ function getTypeLabel(type) {
   return labels[type] ?? "Evento";
 }
 
+function escapeHtml(value) {
+  return `${value ?? ""}`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderProgressBar(percent) {
+  return `
+    <div class="progress-track" aria-hidden="true">
+      <span class="progress-fill" style="width:${percent}%"></span>
+    </div>
+  `;
+}
+
+function getLessonStatusLabel(status) {
+  const labels = {
+    completed: "Completada",
+    available: "Disponible",
+    locked: "Bloqueada",
+  };
+
+  return labels[status] ?? "Disponible";
+}
+
+function getLessonStatusBadge(status) {
+  const badgeMap = {
+    completed: "success",
+    available: "warning",
+    locked: "info",
+  };
+
+  return badgeMap[status] ?? "info";
+}
+
+function renderQuestionInput(question) {
+  if (question.type === "code_fill") {
+    return `
+      <div class="field">
+        <pre class="code-snippet">${escapeHtml(question.template)}</pre>
+        <input
+          name="${question.id}"
+          type="text"
+          placeholder="${escapeHtml(question.placeholder || "Escribe tu respuesta")}"
+          required
+        />
+      </div>
+    `;
+  }
+
+  return `
+    <div class="lesson-option-list">
+      ${(question.options ?? [])
+        .map(
+          (option) => `
+            <label class="lesson-option">
+              <input type="radio" name="${question.id}" value="${option.value}" required />
+              <span>${option.label}</span>
+            </label>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 export function renderSidebar({ activeRoute, profile, memberships }) {
   return `
     <button class="close-sidebar-btn" data-action="toggle-sidebar">✕</button>
@@ -102,6 +170,7 @@ export function renderSidebar({ activeRoute, profile, memberships }) {
       ${createNavLink("dashboard", "Resumen", activeRoute)}
       ${createNavLink("schedule", "Horarios", activeRoute)}
       ${createNavLink("groups", "Grupos", activeRoute)}
+      ${createNavLink("lessons", "Lecciones", activeRoute)}
       ${createNavLink("grades", "Calificaciones", activeRoute)}
       ${createNavLink("calendar", "Calendario", activeRoute)}
       ${createNavLink("tasks", "Tareas", activeRoute)}
@@ -1210,6 +1279,404 @@ export function renderTasksScreen(state) {
           </div>
         </article>
       </div>
+    </section>
+  `;
+}
+
+export function renderLessonsScreen({ subjectsOverview }) {
+  return `
+    <section class="screen">
+      <div class="screen-header">
+        <div>
+          <h2>Lecciones</h2>
+          <p>Microlecciones preparatorias para llegar con contexto antes de clase.</p>
+        </div>
+      </div>
+
+      ${
+        subjectsOverview.length
+          ? `
+            <div class="grid two">
+              ${subjectsOverview
+                .map((item) => {
+                  const hasLessons = item.totalLessons > 0;
+
+                  return `
+                    <article class="list-card lesson-subject-card">
+                      <div class="item-header">
+                        <div>
+                          <strong>${item.subject.name}</strong>
+                          <div class="meta">${item.subject.code || "Sin código"} · ${item.subject.section || "sin sección"}</div>
+                        </div>
+                        <span class="badge ${hasLessons ? "warning" : "info"}">
+                          ${hasLessons ? `${item.completedCount}/${item.totalLessons}` : "Sin ruta"}
+                        </span>
+                      </div>
+
+                      ${
+                        hasLessons
+                          ? `
+                            ${renderProgressBar(item.completionPercent)}
+                            <div class="lesson-stat-grid">
+                              <div class="lesson-stat-card">
+                                <span class="meta">Progreso</span>
+                                <strong>${item.completionPercent}%</strong>
+                              </div>
+                              <div class="lesson-stat-card">
+                                <span class="meta">XP</span>
+                                <strong>${item.totalXp}</strong>
+                              </div>
+                              <div class="lesson-stat-card">
+                                <span class="meta">Streak</span>
+                                <strong>${item.streak}</strong>
+                              </div>
+                            </div>
+                            <p class="footer-note">Ruta activa para preparar los temas base antes de la sesión presencial.</p>
+                          `
+                          : `
+                            <div class="empty-state lesson-empty-inline">
+                              Aún no hay ruta preparatoria para esta materia.
+                            </div>
+                          `
+                      }
+
+                      <div class="button-row">
+                        <a class="btn btn-primary" href="#/lessons/${item.subject.id}">Ver ruta</a>
+                      </div>
+                    </article>
+                  `;
+                })
+                .join("")}
+            </div>
+          `
+          : `
+            <div class="empty-state">
+              Primero registra tus materias para activar rutas de preparación.
+            </div>
+          `
+      }
+    </section>
+  `;
+}
+
+export function renderLessonRoadmapScreen({ subject, roadmap }) {
+  return `
+    <section class="screen">
+      <div class="hero-card lesson-hero">
+        <div class="screen-header">
+          <div>
+            <h2>Ruta de ${subject.name}</h2>
+            <p>Lecciones cortas, en secuencia, para calentar antes de clase y llegar con vocabulario base.</p>
+          </div>
+          <div class="screen-actions">
+            <a class="btn btn-secondary" href="#/lessons">Volver a materias</a>
+            <a class="btn btn-primary" href="#/lessons/${subject.id}/leaderboard">Ver ranking</a>
+          </div>
+        </div>
+
+        <div class="lesson-stat-grid compact">
+          <article class="lesson-stat-card">
+            <span class="meta">Lecciones</span>
+            <strong>${roadmap.completedCount}/${roadmap.totalLessons}</strong>
+          </article>
+          <article class="lesson-stat-card">
+            <span class="meta">XP total</span>
+            <strong>${roadmap.totalXp}</strong>
+          </article>
+          <article class="lesson-stat-card">
+            <span class="meta">Streak</span>
+            <strong>${roadmap.streak}</strong>
+          </article>
+        </div>
+      </div>
+
+      ${
+        roadmap.totalLessons
+          ? `
+            <div class="lesson-roadmap">
+              ${roadmap.lessons
+                .map(
+                  (lesson, index) => `
+                    <article class="lesson-node ${lesson.status}">
+                      <div class="lesson-node-marker">${index + 1}</div>
+                      <div class="lesson-node-card">
+                        <div class="item-header">
+                          <div>
+                            <div class="meta">${lesson.topic}</div>
+                            <strong>${lesson.title}</strong>
+                          </div>
+                          <span class="badge ${getLessonStatusBadge(lesson.status)}">
+                            ${getLessonStatusLabel(lesson.status)}
+                          </span>
+                        </div>
+                        <div class="chip-row">
+                          <span class="badge info">${lesson.estimatedMinutes} min</span>
+                          <span class="badge info">${lesson.xpReward} XP</span>
+                        </div>
+                        <p class="footer-note">${lesson.content.explanation}</p>
+                        <div class="button-row">
+                          ${
+                            lesson.status === "completed"
+                              ? `<a class="btn btn-secondary" href="#/lessons/${subject.id}/play/${lesson.id}">Repasar</a>`
+                              : lesson.status === "available"
+                                ? `<a class="btn btn-primary" href="#/lessons/${subject.id}/play/${lesson.id}">Iniciar lección</a>`
+                                : `<button class="btn btn-secondary" type="button" disabled>Bloqueada</button>`
+                          }
+                        </div>
+                      </div>
+                    </article>
+                  `
+                )
+                .join("")}
+            </div>
+          `
+          : `
+            <div class="empty-state">
+              Aún no hay ruta preparatoria para esta materia.
+            </div>
+          `
+      }
+    </section>
+  `;
+}
+
+export function renderLessonPlayerScreen({ subject, lessonPlayerData, submissionResult }) {
+  if (!lessonPlayerData.lesson) {
+    return `
+      <section class="screen">
+        <div class="empty-state">No encontré esta lección en la ruta seleccionada.</div>
+      </section>
+    `;
+  }
+
+  const { lesson, currentProgress } = lessonPlayerData;
+
+  if (submissionResult) {
+    return `
+      <section class="screen">
+        <div class="hero-card lesson-hero">
+          <div class="screen-header">
+            <div>
+              <h2>${lesson.title}</h2>
+              <p>${submissionResult.alreadyCompleted ? "Repaso registrado." : "Lección finalizada."} La idea es mantener ritmo, no competir con presión.</p>
+            </div>
+            <div class="screen-actions">
+              <a class="btn btn-secondary" href="#/lessons/${subject.id}">Volver a la ruta</a>
+              <a class="btn btn-primary" href="#/lessons/${subject.id}/leaderboard">Ver ranking</a>
+            </div>
+          </div>
+
+          <div class="lesson-stat-grid compact">
+            <article class="lesson-stat-card">
+              <span class="meta">Puntaje</span>
+              <strong>${submissionResult.score}%</strong>
+            </article>
+            <article class="lesson-stat-card">
+              <span class="meta">XP ganado</span>
+              <strong>+${submissionResult.awardedXp}</strong>
+            </article>
+            <article class="lesson-stat-card">
+              <span class="meta">Streak</span>
+              <strong>${submissionResult.streak}</strong>
+            </article>
+          </div>
+        </div>
+
+        <article class="list-card">
+          <div class="screen-header">
+            <div>
+              <h2 class="section-title">Feedback rápido</h2>
+              <p>${submissionResult.correctCount} de ${submissionResult.totalQuestions} respuestas correctas. ${submissionResult.perfect ? "Bonus perfecto: +5 XP." : "Sigue así; el progreso se acumula por constancia."}</p>
+            </div>
+          </div>
+
+          <div class="list-stack">
+            ${submissionResult.results
+              .map(
+                (result, index) => `
+                  <article class="item-card lesson-feedback-card ${result.isCorrect ? "is-correct" : "is-incorrect"}">
+                    <div class="item-header">
+                      <strong>Pregunta ${index + 1}</strong>
+                      <span class="badge ${result.isCorrect ? "success" : "danger"}">
+                        ${result.isCorrect ? "Correcta" : "Por revisar"}
+                      </span>
+                    </div>
+                    <div>${result.prompt}</div>
+                    <div class="meta">Tu respuesta: ${escapeHtml(result.userAnswer || "Sin respuesta")}</div>
+                    ${
+                      result.isCorrect
+                        ? ""
+                        : `<div class="meta">Respuesta esperada: ${escapeHtml(result.expectedAnswer)}</div>`
+                    }
+                    <p class="footer-note">${result.feedback}</p>
+                  </article>
+                `
+              )
+              .join("")}
+          </div>
+
+          <div class="button-row">
+            <button class="btn btn-secondary" type="button" data-action="retry-lesson">Repasar otra vez</button>
+          </div>
+        </article>
+      </section>
+    `;
+  }
+
+  const totalSteps = lesson.content.questions.length + 1;
+
+  return `
+    <section class="screen">
+      <div class="screen-header">
+        <div>
+          <h2>${lesson.title}</h2>
+          <p>${subject.name} · ${lesson.topic}</p>
+        </div>
+        <div class="screen-actions">
+          <a class="btn btn-secondary" href="#/lessons/${subject.id}">Volver a la ruta</a>
+        </div>
+      </div>
+
+      <div class="lesson-player-shell" data-lesson-player>
+        <form
+          class="lesson-player-form"
+          data-form="lesson-player"
+          data-subject-id="${subject.id}"
+          data-lesson-id="${lesson.id}"
+        >
+          <article class="list-card lesson-player-step active" data-step="0">
+            <div class="item-header">
+              <div>
+                <span class="badge warning">Paso 1 de ${totalSteps}</span>
+                <h2 class="section-title">Antes de empezar</h2>
+              </div>
+              <div class="chip-row">
+                <span class="badge info">${lesson.estimatedMinutes} min</span>
+                <span class="badge info">${lesson.xpReward} XP base</span>
+              </div>
+            </div>
+            <p>${lesson.content.explanation}</p>
+            ${
+              currentProgress?.completed
+                ? `<div class="empty-state lesson-empty-inline">Ya la completaste antes. Puedes repasarla para reforzar, pero el XP no se duplica.</div>`
+                : ""
+            }
+            <div class="button-row">
+              <button class="btn btn-primary" type="button" data-action="lesson-next-step">Empezar preguntas</button>
+            </div>
+          </article>
+
+          ${lesson.content.questions
+            .map(
+              (question, index) => `
+                <article class="list-card lesson-player-step" data-step="${index + 1}">
+                  <div class="item-header">
+                    <div>
+                      <span class="badge warning">Paso ${index + 2} de ${totalSteps}</span>
+                      <h2 class="section-title">Pregunta ${index + 1}</h2>
+                    </div>
+                    <span class="badge info">${question.type === "code_fill" ? "Completar código" : question.type === "true_false" ? "Verdadero/Falso" : "Selección múltiple"}</span>
+                  </div>
+                  <p>${question.prompt}</p>
+                  ${renderQuestionInput(question)}
+                  <div class="button-row">
+                    <button class="btn btn-secondary" type="button" data-action="lesson-prev-step">Atrás</button>
+                    ${
+                      index === lesson.content.questions.length - 1
+                        ? `<button class="btn btn-primary" type="submit">Finalizar y guardar</button>`
+                        : `<button class="btn btn-primary" type="button" data-action="lesson-next-step">Siguiente</button>`
+                    }
+                  </div>
+                </article>
+              `
+            )
+            .join("")}
+        </form>
+      </div>
+    </section>
+  `;
+}
+
+export function renderLeaderboardScreen({ subject, leaderboards, summary }) {
+  return `
+    <section class="screen">
+      <div class="hero-card lesson-hero">
+        <div class="screen-header">
+          <div>
+            <h2>Ranking sano de ${subject.name}</h2>
+            <p>Compara constancia y avance dentro de tus grupos, con foco en motivación positiva y preparación compartida.</p>
+          </div>
+          <div class="screen-actions">
+            <a class="btn btn-secondary" href="#/lessons/${subject.id}">Volver a la ruta</a>
+          </div>
+        </div>
+
+        <div class="lesson-stat-grid compact">
+          <article class="lesson-stat-card">
+            <span class="meta">Tu XP</span>
+            <strong>${summary.totalXp}</strong>
+          </article>
+          <article class="lesson-stat-card">
+            <span class="meta">Tu streak</span>
+            <strong>${summary.streak}</strong>
+          </article>
+          <article class="lesson-stat-card">
+            <span class="meta">Lecciones</span>
+            <strong>${summary.completedCount}/${summary.totalLessons}</strong>
+          </article>
+        </div>
+      </div>
+
+      ${
+        leaderboards.length
+          ? leaderboards
+              .map(
+                (board) => `
+                  <article class="list-card">
+                    <div class="screen-header">
+                      <div>
+                        <h2 class="section-title">${board.group.name}</h2>
+                        <p>${board.group.subjectName} · Cada persona suma desde su propio ritmo; aquí celebramos consistencia.</p>
+                      </div>
+                    </div>
+
+                    <div class="leaderboard-list">
+                      ${board.members
+                        .map(
+                          (member) => `
+                            <article class="leaderboard-row ${member.isCurrentUser ? "is-current-user" : ""}">
+                              <div class="leaderboard-rank">#${member.rank}</div>
+                              <div>
+                                <strong>${member.userName}</strong>
+                                <div class="meta">${member.role}</div>
+                              </div>
+                              <div>
+                                <strong>${member.totalXp}</strong>
+                                <div class="meta">XP</div>
+                              </div>
+                              <div>
+                                <strong>${member.streak}</strong>
+                                <div class="meta">streak</div>
+                              </div>
+                              <div>
+                                <strong>${member.completedLessons}</strong>
+                                <div class="meta">lecciones</div>
+                              </div>
+                            </article>
+                          `
+                        )
+                        .join("")}
+                    </div>
+                  </article>
+                `
+              )
+              .join("")
+          : `
+            <div class="empty-state">
+              Únete a un grupo de esta materia para ver un ranking compartido.
+            </div>
+          `
+      }
     </section>
   `;
 }

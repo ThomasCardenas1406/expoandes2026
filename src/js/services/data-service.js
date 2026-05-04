@@ -11,6 +11,10 @@ const COLLECTION_KEYS = [
   "tasks",
   "grades",
   "calendarEvents",
+  "lessons",
+  "userLessonProgress",
+  "userGamification",
+  "groupLeaderboard",
 ];
 
 const LOCAL_PREFIX = "expoandes_mvp_";

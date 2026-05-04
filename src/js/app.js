@@ -21,6 +21,13 @@ import {
   updateUserProfile,
 } from "./services/data-service.js";
 import {
+  getLessonPlayer,
+  getLessonsOverview,
+  getLessonRoadmap,
+  getSubjectLeaderboards,
+  submitLessonAttempt,
+} from "./services/lesson-service.js";
+import {
   getCurrentUser,
   initializeAuth,
   loginWithEmail,
@@ -38,6 +45,10 @@ import {
   renderDashboardScreen,
   renderGradesScreen,
   renderGroupDetailScreen,
+  renderLeaderboardScreen,
+  renderLessonPlayerScreen,
+  renderLessonRoadmapScreen,
+  renderLessonsScreen,
   renderGroupsScreen,
   renderLoadingScreen,
   renderMatchingScreen,
@@ -64,6 +75,7 @@ const state = {
   grades: [],
   calendarEvents: [],
   recommendations: [],
+  lessonResult: null,
 };
 
 const appRoot = document.getElementById("app");
@@ -142,6 +154,27 @@ function getSafeRoute() {
   return route;
 }
 
+function getSubjectById(subjectId) {
+  return state.subjects.find((subject) => subject.id === subjectId) ?? null;
+}
+
+function syncTransientRouteState() {
+  const [section, subjectId, action, lessonId] = getRouteParts();
+  const viewingLessonPlayer = section === "lessons" && action === "play" && lessonId;
+
+  if (!viewingLessonPlayer) {
+    state.lessonResult = null;
+    return;
+  }
+
+  const matchesCurrentLesson =
+    state.lessonResult?.subjectId === subjectId && state.lessonResult?.lessonId === lessonId;
+
+  if (!matchesCurrentLesson) {
+    state.lessonResult = null;
+  }
+}
+
 function navigateTo(route) {
   window.location.hash = `#/${route}`;
 }
@@ -211,7 +244,7 @@ function hydrateShell() {
 }
 
 async function renderProtectedScreen() {
-  const [section, detailId] = getRouteParts();
+  const [section, detailId, nestedAction, nestedId] = getRouteParts();
 
   if (state.status.loading) {
     return renderLoadingScreen();
@@ -243,6 +276,75 @@ async function renderProtectedScreen() {
       return renderCalendarScreen(state);
     case "tasks":
       return renderTasksScreen(state);
+    case "lessons": {
+      if (!detailId) {
+        const subjectsOverview = await getLessonsOverview({
+          userId: getUserUid(),
+          subjects: state.subjects,
+        });
+
+        return renderLessonsScreen({
+          subjectsOverview,
+        });
+      }
+
+      const subject = getSubjectById(detailId);
+
+      if (!subject) {
+        return `
+          <section class="screen">
+            <div class="empty-state">No encontré la materia asociada a esta ruta de lecciones.</div>
+          </section>
+        `;
+      }
+
+      if (nestedAction === "play" && nestedId) {
+        const lessonPlayerData = await getLessonPlayer({
+          userId: getUserUid(),
+          subject,
+          lessonId: nestedId,
+        });
+
+        return renderLessonPlayerScreen({
+          subject,
+          lessonPlayerData,
+          submissionResult:
+            state.lessonResult?.subjectId === subject.id &&
+            state.lessonResult?.lessonId === nestedId
+              ? state.lessonResult
+              : null,
+        });
+      }
+
+      if (nestedAction === "leaderboard") {
+        const leaderboards = await getSubjectLeaderboards({
+          currentUserId: getUserUid(),
+          subject,
+          memberships: state.groupMembers,
+          studyGroups: state.studyGroups,
+        });
+        const roadmap = await getLessonRoadmap({
+          userId: getUserUid(),
+          subject,
+        });
+
+        return renderLeaderboardScreen({
+          subject,
+          leaderboards,
+          summary: roadmap,
+        });
+      }
+
+      const roadmap = await getLessonRoadmap({
+        userId: getUserUid(),
+        subject,
+      });
+
+      return renderLessonRoadmapScreen({
+        subject,
+        roadmap,
+      });
+    }
     case "profile":
       return renderProfileScreen(state);
     default:
@@ -251,6 +353,7 @@ async function renderProtectedScreen() {
 }
 
 async function renderApp() {
+  syncTransientRouteState();
   hydrateShell();
   const route = getSafeRoute();
 
@@ -443,6 +546,31 @@ async function handleFormSubmit(event) {
         });
         showToast("Perfil actualizado.");
         break;
+      case "lesson-player": {
+        const subject = getSubjectById(form.dataset.subjectId);
+
+        if (!subject) {
+          throw new Error("No encontré la materia de esta lección.");
+        }
+
+        const result = await submitLessonAttempt({
+          user: state.authUser,
+          profile: state.profile,
+          subject,
+          lessonId: form.dataset.lessonId,
+          answers: payload,
+          memberships: state.groupMembers,
+          studyGroups: state.studyGroups,
+        });
+
+        state.lessonResult = result;
+        showToast(
+          result.awardedXp
+            ? `Lección completada. +${result.awardedXp} XP.`
+            : `Lección repasada. Tu streak quedó en ${result.streak}.`
+        );
+        break;
+      }
       default:
         return;
     }
@@ -466,6 +594,16 @@ async function handleActionClick(event) {
       case "toggle-sidebar":
         const isOpen = sidebarRoot.classList.toggle("sidebar-open");
         overlay.classList.toggle("hidden", !isOpen);
+        return;
+      case "lesson-next-step":
+        moveLessonPlayerStep(actionTrigger.closest("[data-lesson-player]"), 1);
+        return;
+      case "lesson-prev-step":
+        moveLessonPlayerStep(actionTrigger.closest("[data-lesson-player]"), -1);
+        return;
+      case "retry-lesson":
+        state.lessonResult = null;
+        renderApp();
         return;
       case "export-ics":
         downloadICS(state);
@@ -530,6 +668,48 @@ function attachGlobalListeners() {
 });
 }
 
+function moveLessonPlayerStep(playerRoot, direction) {
+  if (!playerRoot) return;
+
+  const steps = [...playerRoot.querySelectorAll("[data-step]")];
+  const currentStep = steps.findIndex((step) => step.classList.contains("active"));
+
+  if (currentStep === -1) return;
+
+  const nextStep = currentStep + direction;
+
+  if (nextStep < 0 || nextStep >= steps.length) return;
+
+  if (direction > 0) {
+    const currentStepRoot = steps[currentStep];
+    const requiredFields = [
+      ...currentStepRoot.querySelectorAll(
+        'input[required]:not([type="radio"]), textarea[required], select[required]'
+      ),
+    ];
+    const radioFields = [...currentStepRoot.querySelectorAll('input[type="radio"][required]')];
+    const radioNames = [...new Set(radioFields.map((field) => field.name))];
+    const firstInvalidField = requiredFields.find((field) => !field.checkValidity());
+    const firstInvalidRadio = radioNames.find(
+      (name) => !currentStepRoot.querySelector(`input[name="${name}"]:checked`)
+    );
+
+    if (firstInvalidField) {
+      firstInvalidField.reportValidity();
+      return;
+    }
+
+    if (firstInvalidRadio) {
+      const radio = currentStepRoot.querySelector(`input[name="${firstInvalidRadio}"]`);
+      radio?.reportValidity();
+      return;
+    }
+  }
+
+  steps[currentStep].classList.remove("active");
+  steps[nextStep].classList.add("active");
+}
+
 function setupAuthObserver() {
   subscribeToAuth(async (user) => {
     state.authUser = user;
@@ -545,6 +725,7 @@ function setupAuthObserver() {
       state.grades = [];
       state.calendarEvents = [];
       state.recommendations = [];
+      state.lessonResult = null;
       state.status.loading = false;
       renderApp();
       return;
@@ -556,8 +737,8 @@ function setupAuthObserver() {
         name: user.displayName || user.name || "Estudiante Expoandes",
         email: user.email,
         university: "Universidad de los Andes",
-        program: payload.program || "Sin definir",
-        semester: payload.semester || 1,
+        program: "Sin definir",
+        semester: 1,
         createdAt: new Date().toISOString(),
       });
       await refreshData();
