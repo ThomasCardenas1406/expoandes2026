@@ -1,4 +1,10 @@
-import { PILOT_LESSONS, getLessonSubjectKey, isPilotSubject, normalizeLessonText } from "../data/seed-lessons.js";
+import {
+  SEEDED_LESSONS,
+  getLessonSubjectKey,
+  getSeededLessonsForSubject,
+  isSeededSubject,
+  normalizeLessonText,
+} from "../data/seed-lessons.js";
 import {
   calculateNextStreak,
   evaluateLessonAnswers,
@@ -14,7 +20,7 @@ const LESSONS_COLLECTION = "lessons";
 const USER_PROGRESS_COLLECTION = "userLessonProgress";
 const USER_GAMIFICATION_COLLECTION = "userGamification";
 const GROUP_LEADERBOARD_COLLECTION = "groupLeaderboard";
-let remotePilotSeedAttempted = false;
+let remoteSeedAttempted = false;
 
 function localKey(collectionName) {
   return `${LOCAL_PREFIX}${collectionName}`;
@@ -51,13 +57,13 @@ function getLessonIds(lessons) {
   return new Set(lessons.map((lesson) => lesson.id));
 }
 
-function syncLocalPilotLessons() {
+function syncLocalSeededLessons() {
   const collection = readLocalCollection(LESSONS_COLLECTION);
-  const nonPilotLessons = collection.filter(
-    (item) => !PILOT_LESSONS.some((lesson) => lesson.id === item.id)
+  const nonSeededLessons = collection.filter(
+    (item) => !SEEDED_LESSONS.some((lesson) => lesson.id === item.id)
   );
 
-  writeLocalCollection(LESSONS_COLLECTION, [...nonPilotLessons, ...PILOT_LESSONS]);
+  writeLocalCollection(LESSONS_COLLECTION, [...nonSeededLessons, ...SEEDED_LESSONS]);
 }
 
 async function getRemoteLessons(subjectKey) {
@@ -72,16 +78,16 @@ async function getRemoteLessons(subjectKey) {
   return sortLessons(mapFirestoreDocs(snapshot));
 }
 
-async function seedRemotePilotLessonsIfPossible() {
+async function seedRemoteLessonsIfPossible() {
   const { firebaseReady, db } = getFirebaseContext();
 
-  if (!firebaseReady || remotePilotSeedAttempted) return;
+  if (!firebaseReady || remoteSeedAttempted) return;
 
-  remotePilotSeedAttempted = true;
+  remoteSeedAttempted = true;
 
   try {
     await Promise.all(
-      PILOT_LESSONS.map((lesson) =>
+      SEEDED_LESSONS.map((lesson) =>
         firestoreApi.setDoc(firestoreApi.doc(db, LESSONS_COLLECTION, lesson.id), lesson)
       )
     );
@@ -92,11 +98,11 @@ async function seedRemotePilotLessonsIfPossible() {
 
 async function getLessonsForSubject(subject) {
   const subjectKey = getLessonSubjectKey(subject);
-  const fallbackLessons = isPilotSubject(subject) ? PILOT_LESSONS : [];
+  const fallbackLessons = getSeededLessonsForSubject(subject);
   const { firebaseReady } = getFirebaseContext();
 
   if (!firebaseReady) {
-    syncLocalPilotLessons();
+    syncLocalSeededLessons();
     const localLessons = readLocalCollection(LESSONS_COLLECTION).filter(
       (lesson) => lesson.subjectName === subjectKey
     );
@@ -104,8 +110,8 @@ async function getLessonsForSubject(subject) {
   }
 
   try {
-    if (isPilotSubject(subject)) {
-      await seedRemotePilotLessonsIfPossible();
+    if (isSeededSubject(subject)) {
+      await seedRemoteLessonsIfPossible();
     }
 
     const remoteLessons = await getRemoteLessons(subjectKey);

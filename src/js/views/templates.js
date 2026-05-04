@@ -450,7 +450,7 @@ export function renderScheduleScreen(state) {
           <div class="screen-header">
             <div>
               <h2 class="section-title">Nueva materia</h2>
-              <p>La materia queda disponible para horarios, tareas y notas.</p>
+              <p>Usa el código oficial del curso sin espacios ni guiones, por ejemplo ISIS1221.</p>
             </div>
           </div>
           <form class="form-grid" data-form="subject">
@@ -461,7 +461,15 @@ export function renderScheduleScreen(state) {
               </div>
               <div class="field">
                 <label for="subject-code">Código</label>
-                <input id="subject-code" name="code" type="text" required />
+                <input
+                  id="subject-code"
+                  name="code"
+                  type="text"
+                  placeholder="Ej: ISIS1221"
+                  pattern="[A-Za-z]{4}[0-9]{4}"
+                  title="Usa el formato ISIS1221, sin espacios ni guiones"
+                  required
+                />
               </div>
               <div class="field">
                 <label for="subject-section">Sección</label>

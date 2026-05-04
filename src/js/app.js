@@ -378,6 +378,12 @@ function serializeForm(formElement) {
   return Object.fromEntries(new FormData(formElement).entries());
 }
 
+function normalizeCourseCode(value) {
+  return `${value ?? ""}`
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
 async function handleAuthSubmit(type, formElement) {
   const payload = serializeForm(formElement);
 
@@ -416,7 +422,7 @@ async function handleFormSubmit(event) {
         await createSubject({
           userId: uid,
           name: payload.name,
-          code: payload.code,
+          code: normalizeCourseCode(payload.code),
           section: payload.section,
           color: payload.color,
         });
