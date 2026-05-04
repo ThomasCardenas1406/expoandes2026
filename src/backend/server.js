@@ -7,7 +7,7 @@ if (!process.env.DISCORD_GUILD_ID) {
   throw new Error("❌ Falta DISCORD_GUILD_ID en .env");
 }
 
-console.log("✅ Variables cargadas correctamente");
+console.log("Variables cargadas correctamente");
 import express from "express";
 import cors from "cors";
 import {
@@ -100,7 +100,8 @@ app.post("/create-discord-group", async (req, res) => {
   }
 });
 
-client.once("ready", () => {
+client.once("clientReady", () => {
+
   console.log(`Bot conectado como ${client.user.tag}`);
 
   const port = process.env.PORT || 3000;
