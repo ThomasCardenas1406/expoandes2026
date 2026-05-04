@@ -282,21 +282,6 @@ export function renderAuthScreen(screen) {
             calcula notas sin depender de frameworks pesados.
           </p>
         </div>
-
-        <div class="auth-stats">
-          <article>
-            <div class="meta">Horarios</div>
-            <strong>6 días</strong>
-          </article>
-          <article>
-            <div class="meta">Matching</div>
-            <strong>1 hora mínimo</strong>
-          </article>
-          <article>
-            <div class="meta">Base</div>
-            <strong>Firebase</strong>
-          </article>
-        </div>
       </article>
     </section>
   `;
