@@ -435,7 +435,7 @@ export function renderDashboardScreen(state) {
         <div class="screen-header">
           <div>
             <h2 class="section-title">Recomendaciones básicas</h2>
-            <p>Sugerencias rápidas generadas con la información del MVP.</p>
+            <p>Sugerencias rápidas generadas con la información de tu horario.</p>
           </div>
         </div>
         <div class="collection-list">
@@ -499,10 +499,10 @@ export function renderScheduleScreen(state) {
                 <input id="subject-section" name="section" type="text" placeholder="Ej: 1, 2, A" />
               </div>
               <div class="field">
-                <label for="subject-color">Color</label>
-                <div class="color-picker">
-                  <input id="subject-color" name="color" type="color" />
-                  <span id="color-preview"></span>
+                <label for="subject-color">Color de la materia</label>
+                <div class="color-picker-box">
+                  <input id="subject-color" name="color" type="color" value="#FFCC00" />
+                  <span>Elegir color</span>
                 </div>
               </div>
             </div>
@@ -770,10 +770,6 @@ export function renderCreateGroupScreen(state) {
             <div class="field">
               <label for="group-university">Universidad</label>
               <input id="group-university" name="university" type="text" value="Universidad de los Andes" required />
-            </div>
-            <div class="field">
-              <label for="group-discord">Discord / enlace</label>
-              <input id="group-discord" name="discordLink" type="url" placeholder="https://discord.gg/..." />
             </div>
           </div>
           <div class="field">
@@ -1078,7 +1074,7 @@ export function renderCalendarScreen(state) {
           <div class="screen-header">
             <div>
               <h2 class="section-title">Próximos eventos</h2>
-              <p>Vista cronológica simple para el MVP.</p>
+              <p>Vista cronológica de tus eventos de la universidad.</p>
             </div>
           </div>
           <div class="collection-list">

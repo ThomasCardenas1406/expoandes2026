@@ -382,8 +382,12 @@ a {
 }
 
 .btn-secondary {
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.08);
+  color: #000000;
+  background: rgba(255, 204, 0, 0.85);
+}
+
+.btn-secondary:hover {
+  background: #ffcc00;
 }
 
 .btn-danger {
@@ -824,14 +828,57 @@ a {
 @media (max-width: 760px) {
   .view-root,
   .topbar {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    position: relative;
+    top: auto;
+    z-index: 5;
+    padding-top: 1rem;
+    flex-wrap: wrap;
   }
 
   .auth-shell {
     padding: 1rem;
   }
 
+  .main-panel {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.view-root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.screen {
+  width: 100%;
+  max-width: 100%;
+}
+
+.grid,
+.grid.two,
+.grid.three,
+.grid.metrics,
+.collection-list,
+.list-stack,
+.card-stack {
+  width: 100%;
+  max-width: 100%;
+}
+
+.list-row,
+.calendar-row,
+.group-row,
+.task-row,
+.grade-row {
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.topbar-card {
+  width: 100%;
+  justify-content: space-between;
+}
   .auth-card,
   .auth-hero,
   .metric-card,
@@ -1005,4 +1052,29 @@ a {
 }
 .discord-alert-card {
   border-left: 6px solid var(--primary-yellow);
+}
+
+.color-picker-box {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.color-picker-box input[type="color"] {
+  width: 56px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.color-picker-box span {
+  font-weight: 700;
+  color: var(--text);
 }
