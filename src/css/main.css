@@ -1003,3 +1003,6 @@ a {
   background: #ffcc00;
   border: 1px solid #ddd;
 }
+.discord-alert-card {
+  border-left: 6px solid var(--primary-yellow);
+}

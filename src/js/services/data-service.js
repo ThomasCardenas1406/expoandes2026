@@ -106,6 +106,8 @@ export async function ensureUserProfile(user, profilePayload) {
     semester: profilePayload.semester,
     photoUrl: profilePayload.photoUrl ?? "",
     createdAt: profilePayload.createdAt ?? new Date().toISOString(),
+    discordJoined: false,
+    discordInviteUrl: "https://discord.gg/p3w3VkEaq",
   };
 
   if (firebaseReady) {
@@ -130,14 +132,33 @@ export async function ensureUserProfile(user, profilePayload) {
 export async function updateUserProfile(uid, data) {
   const { db, firebaseReady } = getFirebaseContext();
 
+  // 👇 Defaults controlados
+  const safeData = {
+    ...data,
+    discordJoined: data.discordJoined ?? false,
+    discordInviteUrl: "https://discord.gg/p3w3VkEaq",
+  };
+
   if (firebaseReady) {
-    await firestoreApi.setDoc(firestoreApi.doc(db, "users", uid), data, { merge: true });
+    await firestoreApi.setDoc(
+      firestoreApi.doc(db, "users", uid),
+      safeData,
+      { merge: true } // 👈 clave: no borra lo anterior
+    );
     return;
   }
 
   const users = readLocalCollection("users").map((item) =>
-    item.uid === uid ? { ...item, ...data } : item
+    item.uid === uid
+      ? {
+          ...item,
+          ...safeData,
+          discordJoined: safeData.discordJoined ?? item.discordJoined ?? false,
+          discordInviteUrl: safeData.discordInviteUrl ?? item.discordInviteUrl,
+        }
+      : item
   );
+
   writeLocalCollection("users", users);
 }
 

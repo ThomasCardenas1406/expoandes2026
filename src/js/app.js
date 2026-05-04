@@ -652,6 +652,15 @@ async function handleActionClick(event) {
         await deleteCalendarEvent(id);
         showToast("Evento eliminado.");
         break;
+      case "mark-discord-joined":
+        await updateUserProfile(getUserUid(), {
+          ...state.profile,
+          discordJoined: true,
+          discordInviteUrl: "https://discord.gg/p3w3VkEaq",
+        });
+        showToast("Discord marcado como conectado.");
+        break;
+        
       default:
         return;
     }

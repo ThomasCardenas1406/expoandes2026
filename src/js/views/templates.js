@@ -325,6 +325,29 @@ export function renderDashboardScreen(state) {
         </div>
       </div>
 
+      ${
+  !state.profile?.discordJoined
+    ? `
+      <article class="list-card discord-alert-card">
+        <div class="screen-header">
+          <div>
+            <h2 class="section-title">Conecta tu Discord</h2>
+            <p>Únete al servidor para acceder a los canales de estudio de tus grupos.</p>
+          </div>
+          <div class="screen-actions">
+            <a class="btn btn-primary" href="https://discord.gg/p3w3VkEaq" target="_blank" rel="noreferrer">
+              Entrar al servidor
+            </a>
+            <button class="btn btn-secondary" data-action="mark-discord-joined">
+              Ya me uní
+            </button>
+          </div>
+        </div>
+      </article>
+    `
+    : ""
+}
+
       <div class="grid metrics">
         <article class="metric-card">
           <span class="meta">Clases hoy</span>
